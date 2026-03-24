@@ -1,4 +1,5 @@
 ﻿using System.IO.Enumeration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using PictureDatabaseAPI.Data;
 using PictureDatabaseAPI.Entities;
@@ -42,5 +43,20 @@ public class PictureServices
         _dbContext.Pictures.Add(record);
         await _dbContext.SaveChangesAsync();
         return record;
+    }
+
+    public async Task<List<PictureRecord>> GetAllPicturesAsync()
+    {
+        return await _dbContext.Pictures.ToListAsync();
+    }
+
+    public async Task<bool> DeletePictureAsync(Guid id)
+    {
+      var record = await _dbContext.Pictures.FindAsync(id);
+      if (record == null) return false;
+      if (File.Exists(record.FilePath)) File.Delete(record.FilePath);
+      _dbContext.Pictures.Remove(record);
+      await _dbContext.SaveChangesAsync();
+      return true;
     }
 }
