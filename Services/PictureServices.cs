@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.IO.Enumeration;
+using Microsoft.Extensions.Configuration;
 using PictureDatabaseAPI.Data;
+using PictureDatabaseAPI.Entities;
 
 namespace PictureDatabaseAPI.Services;
 
@@ -15,5 +17,30 @@ public class PictureServices
         _storagePath = Path.Combine(home, "picture_data");
         
         if (!Directory.Exists(_storagePath))Directory.CreateDirectory(_storagePath);
+    }
+
+    public async Task<PictureRecord> AddPictureAsync(Stream fileStream, string originalName)
+    {
+        var id = Guid.NewGuid();
+        var extension = Path.GetExtension(originalName);
+        var fileName = $"{id}{extension}";
+        var fullPath = Path.Combine(_storagePath, fileName);
+
+        using (var stream = new FileStream(fullPath, FileMode.Create))
+        {
+            await fileStream.CopyToAsync(stream);
+        }
+
+        var record = new PictureRecord
+        {
+            Id = id,
+            FileName = fileName,
+            OriginalFileName = originalName,
+            FilePath = fullPath,
+            Created = DateTime.UtcNow,
+        };
+        _dbContext.Pictures.Add(record);
+        await _dbContext.SaveChangesAsync();
+        return record;
     }
 }
