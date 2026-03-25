@@ -49,6 +49,12 @@ public class PictureServices
     {
         return await _dbContext.Pictures.ToListAsync();
     }
+    
+    public async Task<PictureRecord?> GetPictureByIdAsync(Guid id)
+    {
+        return await _dbContext.Pictures.FindAsync(id);
+    }
+
 
     public async Task<bool> DeletePictureAsync(Guid id)
     {

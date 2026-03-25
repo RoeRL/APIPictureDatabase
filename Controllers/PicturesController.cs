@@ -36,6 +36,18 @@ public class PicturesController : ControllerBase
         return Ok(pictures);
     }
 
+    [HttpGet("view/{id}")]
+    public async Task<IActionResult> GetPictureById(Guid id)
+    {
+        var record = await _pictureServices.GetPictureByIdAsync(id);
+        if (record == null) return NotFound($"Picture not found in database with ID {id}");
+        if (!System.IO.File.Exists(record.FilePath)) return NotFound($"Picture {id} not found.");
+        
+        var provider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+        if (!provider.TryGetContentType(record.FilePath, out var contentType)) contentType = "application/octet-stream";
+        return PhysicalFile(record.FilePath, contentType);
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePicture([FromRoute] Guid id)
     {
