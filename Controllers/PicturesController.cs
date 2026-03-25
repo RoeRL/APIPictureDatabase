@@ -22,7 +22,13 @@ public class PicturesController : ControllerBase
         {
             return BadRequest("No file was uploaded.");
         }
+        
+        const long maxFileSize = 20*1024*1024;
+        if (file.Length > maxFileSize) return BadRequest("File is Too Large! Maximum is 120MB.");
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
+        if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension)) return BadRequest($"Invalid file type '{extension}'. Only JPG, PNG, GIF, BMP, and WEBP are allowed");
         using var stream = file.OpenReadStream();
         var record = await _pictureServices.AddPictureAsync(stream, file.FileName);
 
