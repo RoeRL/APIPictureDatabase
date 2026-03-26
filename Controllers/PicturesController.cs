@@ -36,9 +36,12 @@ public class PicturesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllPictures()
+    public async Task<IActionResult> GetAllPictures([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        var pictures = await _pictureServices.GetAllPicturesAsync();
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;
+        var pictures = await _pictureServices.GetAllPicturesAsync(pageNumber, pageSize);
         return Ok(pictures);
     }
 

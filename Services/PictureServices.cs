@@ -45,9 +45,14 @@ public class PictureServices
         return record;
     }
 
-    public async Task<List<PictureRecord>> GetAllPicturesAsync()
+    public async Task<List<PictureRecord>> GetAllPicturesAsync(int pageNumber = 1, int pageSize = 10)
     {
-        return await _dbContext.Pictures.ToListAsync();
+        int skipAmount = (pageNumber - 1) * pageSize;
+        return await _dbContext.Pictures
+            .OrderByDescending(p => p.Id)
+            .Skip(skipAmount)
+            .Take(pageSize)
+            .ToListAsync();
     }
     
     public async Task<PictureRecord?> GetPictureByIdAsync(Guid id)
