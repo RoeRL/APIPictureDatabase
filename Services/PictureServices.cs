@@ -1,4 +1,5 @@
 ﻿using System.IO.Enumeration;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using PictureDatabaseAPI.Data;
@@ -10,18 +11,33 @@ public class PictureServices
 {
     private readonly AppDbContext _dbContext;
     private readonly string _storagePath;
+    private readonly long _maxStorageSize;
 
     public PictureServices(AppDbContext dbContext, IConfiguration configuration)
     {
         _dbContext = dbContext;
         string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         _storagePath = configuration["StoragePath"] ?? "/app/data/pictures";
+        int maxGb = configuration.GetValue<int>("MaxStorageGb", 25);
+        _maxStorageSize = maxGb * 1024L * 1024L * 1024L;
         
         if (!Directory.Exists(_storagePath))Directory.CreateDirectory(_storagePath);
     }
 
-    public async Task<PictureRecord> AddPictureAsync(Stream fileStream, string originalName)
+    private long GetCurrentStorageSize()
     {
+        var directoryInfo = new DirectoryInfo(_storagePath);
+        return directoryInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(f => f.Length);
+    }
+
+    public async Task<PictureRecord> AddPictureAsync(Stream fileStream, string originalName, IFormFile file)
+    {
+        long currentUsage = GetCurrentStorageSize();
+        
+        if (currentUsage + file.Length > _maxStorageSize)
+        {
+            throw new Exception("STORAGE_LIMIT_REACHED");
+        }
         var id = Guid.NewGuid();
         var extension = Path.GetExtension(originalName);
         var fileName = $"{id}{extension}";
@@ -65,9 +81,11 @@ public class PictureServices
     {
       var record = await _dbContext.Pictures.FindAsync(id);
       if (record == null) return false;
-      if (File.Exists(record.FilePath)) File.Delete(record.FilePath);
+      
       _dbContext.Pictures.Remove(record);
       await _dbContext.SaveChangesAsync();
+      if (File.Exists(record.FilePath)) File.Delete(record.FilePath);
+      
       return true;
     }
 }

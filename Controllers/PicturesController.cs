@@ -18,21 +18,29 @@ public class PicturesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> UploadPicture(IFormFile file)
     {
-        if (file == null || file.Length == 0)
+        if (file == null || file.Length == 0) return BadRequest("No file was uploaded.");
+        try
         {
-            return BadRequest("No file was uploaded.");
+            const long maxFileSize = 20*1024*1024;
+            if (file.Length > maxFileSize) return BadRequest("File is Too Large! Maximum is 120MB.");
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension)) return BadRequest($"Invalid file type '{extension}'. Only JPG, PNG, GIF, BMP, and WEBP are allowed");
+            using var stream = file.OpenReadStream();
+            var record = await _pictureServices.AddPictureAsync(stream, file.FileName, file);
+
+            return Ok(record);
         }
-        
-        const long maxFileSize = 20*1024*1024;
-        if (file.Length > maxFileSize) return BadRequest("File is Too Large! Maximum is 120MB.");
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-
-        if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension)) return BadRequest($"Invalid file type '{extension}'. Only JPG, PNG, GIF, BMP, and WEBP are allowed");
-        using var stream = file.OpenReadStream();
-        var record = await _pictureServices.AddPictureAsync(stream, file.FileName);
-
-        return Ok(record);
+        catch (Exception e)
+        {
+            if (e.Message == "STORAGE_LIMIT_REACHED")
+            {
+                return StatusCode(413, "Storage Quota Exceeded. You have reached your 25GB limit.");
+            }
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     [HttpGet]
