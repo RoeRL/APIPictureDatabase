@@ -11,11 +11,11 @@ public class PictureServices
     private readonly AppDbContext _dbContext;
     private readonly string _storagePath;
 
-    public PictureServices(AppDbContext dbContext)
+    public PictureServices(AppDbContext dbContext, IConfiguration configuration)
     {
         _dbContext = dbContext;
         string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        _storagePath = Path.Combine(home, "picture_data");
+        _storagePath = configuration["StoragePath"] ?? "/app/data/pictures";
         
         if (!Directory.Exists(_storagePath))Directory.CreateDirectory(_storagePath);
     }
