@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picture Gallery Storage API - Documentation</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --text-main: #334155;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --code-bg: #1e293b;
+            --code-text: #f8fafc;
+            --post-color: #10b981;
+            --get-color: #3b82f6;
+            --delete-color: #ef4444;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: var(--text-main);
+            background-color: var(--bg-body);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2, h3 { color: #0f172a; margin-top: 1.5em; }
+        h1 { font-size: 2.2rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; }
+        h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        
+        p { margin-bottom: 1rem; }
+
+        .base-url {
+            background-color: #e0e7ff;
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: #1e3a8a;
+        }
+
+        .endpoint-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            background: #fff;
+        }
+
+        .method-badge {
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
+        .method-post { background-color: var(--post-color); }
+        .method-get { background-color: var(--get-color); }
+        .method-delete { background-color: var(--delete-color); }
+
+        .endpoint-url {
+            font-family: monospace;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #334155;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: left;
+        }
+        th { background-color: #f1f5f9; }
+
+        pre {
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 0.95rem;
+        }
+
+        code {
+            background-color: #f1f5f9;
+            color: #db2777;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        pre code { background-color: transparent; color: inherit; padding: 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>PictureStorage API</h1>
+
+    <p>PictureStorage API adalah sistem penyimpanan gambar yang dibangun menggunakan <strong>.NET 10</strong> dan <strong>SQLite</strong>. Mendukung pengoperasian data gambar mulai dari proses upload, delete, dan retrieval melalui API.</p>
+
+    <h2>Base URL</h2>
+    <div class="base-url">http://69.62.83.101:5050/api</div>
+
+    <h2>Endpoints</h2>
+
+    <div class="endpoint-card">
+        <h3><span class="method-badge method-post">POST</span> <span class="endpoint-url">/Pictures</span></h3>
+        <p><strong>Upload Gambar:</strong> Upload gambar baru ke server, disimpan pada volume lalu menyimpan catatan metadata ke dalam database.</p>
+        <p><em>Proses ini akan melakukan generate Unique Identifier (UUID) untuk mencegah konflik antar nama file, memberikan keamanan pada nama asli file, dan logging ke dalam database.</em></p>
+        
+        <h4>Request Parameters (Body / form-data)</h4>
+        <table>
+            <tr><th>Key</th><th>Type</th><th>Description</th><th>Required</th></tr>
+            <tr><td><code>file</code></td><td>File</td><td>Image file yang akan di upload (.jpg, .jpeg, .png, .gif, .bmp, .webp).</td><td><strong>Yes</strong></td></tr>
+        </table>
+
+        <h4>Success Response</h4>
+        <p><strong>Code:</strong> <code>200 OK</code><br>Returns ID gambar atau pesan success confirmation</p>
+    </div>
+
+    <div class="endpoint-card">
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-url">/Pictures</span></h3>
+        <p><strong>Get All Pictures (Paginated):</strong> Mengambil daftar metadata semua gambar yang diunggah, diurutkan berdasarkan tanggal pembuatan.</p>
+        <p><em>Untuk mencegah sistem overloading pada server atau client, dibuatlah Server-Side Pagination. Dengan cara memberikan query parameters, maka server akan melakukan kalkulasi bagian mana yang akan dilakukan fetch.</em></p>
+        
+        <h4>URL Query Parameters</h4>
+        <table>
+            <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+            <tr><td><code>pageNumber</code></td><td>Integer</td><td>1</td><td>Halaman hasil yang akan di retrieve.</td></tr>
+            <tr><td><code>pageSize</code></td><td>Integer</td><td>10</td><td>Jumlah image per halaman.</td></tr>
+        </table>
+
+        <h4>Success Response Example</h4>
+        <p><strong>Code:</strong> <code>200 OK</code></p>
+<pre><code>[
+  {
+    "id": "29f4aead-9291-4fa7-bf46-77a15fe51938",
+    "fileName": "cat-funny.png",
+    "originalFileName": "cat-funny.png",
+    "filePath": "/app/data/pictures/29f4aead.png",
+    "created": "2026-03-26T11:48:24Z"
+  }
+]</code></pre>
+    </div>
+
+    <div class="endpoint-card">
+        <h3><span class="method-badge method-get">GET</span> <span class="endpoint-url">/Pictures/view/{id}</span></h3>
+        <p><strong>View a Single Picture:</strong> Stream gambar secara langsung pada client.</p>
+        <p><em>Tidak memberikan data JSON, endpoint ini akan mencari file secara langsung dan memberikan return gambar sebenarnya. Gunakan ini secara langsung <code>&lt;img src="..."&gt;</code> pada bagian frontend.</em></p>
+        
+        <h4>URL Parameters</h4>
+        <table>
+            <tr><th>Parameter</th><th>Type</th><th>Description</th><th>Required</th></tr>
+            <tr><td><code>id</code></td><td>String</td><td>Unique ID (UUID) dari gambar.</td><td><strong>Yes</strong></td></tr>
+        </table>
+
+        <h4>Success Response</h4>
+        <p><strong>Code:</strong> <code>200 OK</code><br>Returns gambar secara langsung (e.g., <code>image/jpeg</code> atau <code>image/png</code>).</p>
+    </div>
+
+    <div class="endpoint-card">
+        <h3><span class="method-badge method-delete">DELETE</span> <span class="endpoint-url">/Pictures/{id}</span></h3>
+        <p><strong>Delete a Picture:</strong> Menghapus gambar dari database dan file secara permanen.</p>
+        <p><em>Akan membersihkan dengan dua langkah: mencari dan menghapus file secara langsung pada storage untuk mengosongkan storage, lalu menghapus metadata pada database SQLite.</em></p>
+        
+        <h4>URL Parameters</h4>
+        <table>
+            <tr><th>Parameter</th><th>Type</th><th>Description</th><th>Required</th></tr>
+            <tr><td><code>id</code></td><td>String</td><td>Unique ID (UUID) dari gambar.</td><td><strong>Yes</strong></td></tr>
+        </table>
+
+        <h4>Success Response</h4>
+        <p><strong>Code:</strong> <code>200 OK</code> or <code>204 No Content</code></p>
+    </div>
+    <h2>Storage Quotas</h2>
+    <div class="endpoint-card" style="border-left: 4px solid var(--delete-color);">
+        <p><strong>Maximum Capacity: 25 GB</strong></p>
+        <p>Jika storage sudah menyentuh 25GB, maka tidak dapat melakukan upload image baru.</p>
+        <ul>
+            <li>Jika upload melewati limit, server akan menolak file dan memberikan return <code>413 Payload Too Large</code>.</li>
+        </ul>
+    </div>
+
+    <h2>🚦 Standard Status Codes</h2>
+    <ul>
+        <li><strong><code>200 OK</code> / <code>204 No Content</code></strong> - Request successful.</li>
+        <li><strong><code>400 Bad Request</code></strong> - Request invalid (e.g., empty file upload).</li>
+        <li><strong><code>404 Not Found</code></strong> - Requested resource tidak tersedia.</li>
+        <li><strong><code>413 Payload Too Large</code></strong> - 25GB storage kuota sudah penuh.</li>
+        <li><strong><code>500 Internal Server Error</code></strong> - Server-side exception error.</li>
+    </ul>
+
+    <h2>🎮 Interactive Testing</h2>
+    <p>Dapat melakukan eksplorasi dan testing pada:<br>
+    <a href="http://69.62.83.101:5050/swagger" target="_blank" style="color: var(--primary-color); font-weight: bold;">http://69.62.83.101:5050/swagger</a></p>
+
+</div>
+
+</body>
+</html>
