@@ -1,9 +1,8 @@
-﻿using System.Security.AccessControl;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using PictureDatabaseAPI.Services;
 using PictureDatabaseAPI.Data;
 
@@ -33,10 +32,21 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.EnsureCreated();
 }
 
+
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapControllers();
 Console.WriteLine("Start App");
+
+app.MapGet("/pictureStorageApi/docs", () => 
+{
+    var htmlPath = Path.Combine(AppContext.BaseDirectory, "docs.html");
+    if (!File.Exists(htmlPath)) return Results.NotFound("Documentation file not found.");
+    
+    var htmlContent = File.ReadAllText(htmlPath);
+    return Results.Content(htmlContent, "text/html");
+});
 
 app.Run();
