@@ -12,6 +12,7 @@ string pictureDataPath = Path.Combine(homePath, "picture_data");
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 //Safety protocol
 if (!Directory.Exists(pictureDataPath)) Directory.CreateDirectory(pictureDataPath);
 
@@ -25,6 +26,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<PictureServices>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate(); 
+}
 
 app.UseSwagger();
 app.UseSwaggerUI();
