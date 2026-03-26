@@ -6,10 +6,10 @@ EXPOSE 5050
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["PictureDatabaseAPI/PictureDatabaseAPI.csproj", "PictureDatabaseAPI/"]
-RUN dotnet restore "PictureDatabaseAPI/PictureDatabaseAPI.csproj"
+COPY ["PictureDatabaseAPI.csproj", "./"]
+RUN dotnet restore "PictureDatabaseAPI.csproj"
 COPY . .
-WORKDIR "/src/PictureDatabaseAPI"
+WORKDIR "/src"
 RUN dotnet build "PictureDatabaseAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
